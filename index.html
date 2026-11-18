@@ -5,165 +5,211 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="鏡">
-<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Web">
+<meta name="theme-color" content="#f6f6f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon.svg">
-<title>鏡</title>
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg">
+<title>Web</title>
 <style>
-  :root { color-scheme: dark; }
+  :root {
+    --chrome: #f6f6f7; --chrome-line: #d8d8dc; --field: #e6e6ea;
+    --ink: #1c1c1e; --ink-2: #6e6e73; --tint: #0a66d8; --page: #ffffff; --rec: #ff3b30;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --chrome: #1c1c1e; --chrome-line: #38383a; --field: #2c2c2e;
+      --ink: #f2f2f7; --ink-2: #98989f; --tint: #4c9bff; --page: #121214;
+      color-scheme: dark;
+    }
+  }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
-    margin: 0; height: 100%; background: #000; color: #fff; overflow: hidden;
+    margin: 0; height: 100%; overflow: hidden; background: var(--page); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif;
     -webkit-user-select: none; user-select: none; touch-action: manipulation;
   }
+
+  /* ---- 偽ブラウザの枠 ---- */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    padding: calc(6px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left));
+    background: var(--chrome); border-bottom: 0.5px solid var(--chrome-line);
+  }
+  .field {
+    height: 38px; border-radius: 11px; background: var(--field);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 16px; color: var(--ink); position: relative;
+  }
+  .field svg { width: 13px; height: 13px; color: var(--ink-2); }
+  .field .right { position: absolute; right: 12px; display: flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .field .right svg { width: 16px; height: 16px; }
+  .field .recdot { width: 7px; height: 7px; border-radius: 50%; background: var(--rec); display: none; }
+  body.recording .field .recdot { display: block; }
+  body.recording .field .reload { display: none; }
+
+  .toolbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+    background: var(--chrome); border-top: 0.5px solid var(--chrome-line);
+    display: flex; justify-content: space-around; align-items: center;
+  }
+  .tb {
+    width: 48px; height: 44px; border: none; background: none; padding: 0;
+    display: grid; place-items: center; color: var(--tint);
+  }
+  .tb:active { opacity: .4; }
+  .tb svg { width: 24px; height: 24px; }
+  .tb.dim { color: var(--ink-2); opacity: .45; }
+  body.recording #rec { color: var(--rec); }
+  body.recording #shutter, body.recording #flip { opacity: .3; pointer-events: none; }
+
+  /* ---- ページ部分 ---- */
   #video {
     position: fixed; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; background: #000;
+    object-fit: cover; background: var(--page);
   }
   #video.mirror { transform: scaleX(-1); }
 
-  .bar {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    padding: 16px 28px calc(20px + env(safe-area-inset-bottom));
-    display: flex; align-items: center; justify-content: space-between;
-    background: linear-gradient(transparent, rgba(0,0,0,.55));
-    transition: opacity .25s;
+  #decoy {
+    position: fixed; inset: 0; z-index: 3; background: var(--page); display: none;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: calc(70px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    line-height: 1.75; -webkit-user-select: text; user-select: text;
   }
-  body.hide-ui .bar, body.hide-ui .top { opacity: 0; pointer-events: none; }
+  body.decoy #decoy { display: block; }
+  #decoy h1 { font-size: 24px; line-height: 1.35; margin: 8px 0 4px; }
+  #decoy .meta { color: var(--ink-2); font-size: 13px; margin-bottom: 18px; }
+  #decoy h2 { font-size: 18px; margin: 26px 0 6px; }
+  #decoy p { margin: 0 0 14px; font-size: 16px; }
+  #decoy table { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums; }
+  #decoy td { padding: 8px 4px; border-bottom: 0.5px solid var(--chrome-line); }
+  #decoy td:last-child { text-align: right; }
 
-  .btn {
-    width: 56px; height: 56px; border-radius: 50%; border: none;
-    background: rgba(255,255,255,.18); color: #fff;
-    display: grid; place-items: center; padding: 0;
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  }
-  .btn:active { transform: scale(.92); }
-  .btn svg { width: 28px; height: 28px; }
-
-  #shutter {
-    width: 76px; height: 76px; background: transparent;
-    border: 5px solid #fff; position: relative;
-  }
-  #shutter::after {
-    content: ""; position: absolute; inset: 5px; border-radius: 50%; background: #fff;
-  }
-  #rec .dot { width: 22px; height: 22px; border-radius: 50%; background: #ff3b30; transition: all .2s; }
-  #rec.on .dot { border-radius: 5px; width: 20px; height: 20px; }
-
-  .top {
-    position: fixed; top: 0; left: 0; right: 0;
-    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
-    display: flex; justify-content: center; pointer-events: none;
-    transition: opacity .25s;
-  }
-  #timer {
-    display: none; background: #ff3b30; padding: 4px 12px; border-radius: 8px;
-    font-variant-numeric: tabular-nums; font-weight: 600;
-  }
-  body.recording #timer { display: block; }
-  body.recording #shutter, body.recording #flip { opacity: .3; pointer-events: none; }
-
-  #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; transition: opacity .3s; }
-  #flash.on { opacity: .8; transition: none; }
+  #flash { position: fixed; inset: 0; z-index: 4; background: #fff; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  #flash.on { opacity: .35; transition: none; }
 
   #msg {
-    position: fixed; inset: 0; display: none; place-items: center; text-align: center;
-    padding: 32px; line-height: 1.7;
+    position: fixed; inset: 0; z-index: 4; display: none; place-items: center; text-align: center;
+    padding: 32px; line-height: 1.7; background: var(--page);
   }
   #msg.show { display: grid; }
-  #msg button {
-    margin-top: 16px; padding: 12px 28px; font-size: 17px; border-radius: 24px;
-    border: none; background: #fff; color: #000; font-weight: 600;
+  #msg button, .sheet button {
+    padding: 11px 24px; font-size: 16px; border-radius: 12px; border: none; font-weight: 600;
   }
+  #msg button { margin-top: 16px; background: var(--tint); color: #fff; }
 
   #preview {
-    position: fixed; inset: 0; background: rgba(0,0,0,.92); display: none;
-    flex-direction: column; align-items: center; justify-content: center; gap: 20px;
-    padding: calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+    position: fixed; inset: 0; z-index: 10; background: rgba(0,0,0,.45);
+    display: none; align-items: flex-end;
   }
   #preview.show { display: flex; }
-  #preview .media { max-width: 100%; max-height: 70vh; border-radius: 12px; }
-  #preview .actions { display: flex; gap: 14px; }
-  #preview .actions button {
-    padding: 12px 26px; font-size: 17px; border-radius: 24px; border: none; font-weight: 600;
+  .sheet {
+    width: 100%; background: var(--chrome); border-radius: 14px 14px 0 0;
+    padding: 18px max(16px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
   }
-  #save { background: #fff; color: #000; }
-  #close { background: rgba(255,255,255,.2); color: #fff; }
-  #preview .hint { font-size: 13px; opacity: .7; }
+  .sheet .media { max-width: 100%; max-height: 55vh; border-radius: 10px; }
+  .sheet .actions { display: flex; gap: 12px; width: 100%; }
+  .sheet .actions button { flex: 1; }
+  #save { background: var(--tint); color: #fff; }
+  #close { background: var(--field); color: var(--ink); }
 </style>
 </head>
 <body>
 <video id="video" class="mirror" autoplay playsinline muted></video>
 
-<div class="top"><div id="timer">00:00</div></div>
+<div id="decoy">
+  <h1>週末の天気と服装のめやす</h1>
+  <div class="meta">更新 <span id="today"></span> 6:00</div>
+  <p>週末は高気圧に覆われて、おおむね晴れる見込みです。朝晩と日中の気温差が大きくなるため、羽織るものを一枚持っておくと安心です。</p>
+  <table>
+    <tr><td>土曜日</td><td>晴れ時々くもり</td><td>18° / 9°</td></tr>
+    <tr><td>日曜日</td><td>晴れ</td><td>19° / 10°</td></tr>
+    <tr><td>月曜日</td><td>くもり一時雨</td><td>16° / 11°</td></tr>
+  </table>
+  <h2>服装のめやす</h2>
+  <p>日中は長袖シャツや薄手のニットで過ごせます。朝の外出や夜の帰宅時は、ジャケットやカーディガンがあるとちょうどよいでしょう。</p>
+  <h2>洗濯</h2>
+  <p>土日ともに外干し日和です。日曜は空気が乾燥し、厚手のものもよく乾きます。月曜は午後から雨の可能性があるため、早めに取り込むのがおすすめです。</p>
+  <h2>紫外線</h2>
+  <p>紫外線は「やや強い」。長時間外にいる場合は日焼け止めや帽子があると安心です。</p>
+</div>
+
 <div id="flash"></div>
 
-<div class="bar">
-  <button class="btn" id="rec" aria-label="録画"><span class="dot"></span></button>
-  <button class="btn" id="shutter" aria-label="写真を撮る"></button>
-  <button class="btn" id="flip" aria-label="カメラ切替">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M20 7h-3l-2-3H9L7 7H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1z"/>
-      <path d="M9 13a3 3 0 0 1 5.2-2M15 13a3 3 0 0 1-5.2 2"/>
-      <path d="M14.5 9.5v1.7h-1.7M9.5 16.5v-1.7h1.7"/>
-    </svg>
+<div class="topbar">
+  <div class="field">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10V8a5 5 0 0 0-10 0v2H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1zm-8 0V8a3 3 0 0 1 6 0v2H9z"/></svg>
+    <span>週末の天気</span>
+    <span class="right">
+      <span class="recdot"></span><span id="timer"></span>
+      <svg class="reload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>
+    </span>
+  </div>
+</div>
+
+<!-- ‹ = 隠す/戻す   共有 = 写真   本 = 録画   タブ = カメラ切替 -->
+<div class="toolbar">
+  <button class="tb" id="hide" aria-label="戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button class="tb dim" aria-hidden="true" tabindex="-1">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+  <button class="tb" id="shutter" aria-label="共有">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>
+  </button>
+  <button class="tb" id="rec" aria-label="ブックマーク">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 5.5C5.5 4 9 4 12 6c3-2 6.5-2 9-.5V19c-2.5-1.5-6-1.5-9 .5-3-2-6.5-2-9-.5V5.5zM12 6v13.5"/></svg>
+  </button>
+  <button class="tb" id="flip" aria-label="タブ">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>
   </button>
 </div>
 
-<div id="msg"><div><div id="msgText"></div><button id="retry">カメラを開始</button></div></div>
+<div id="msg"><div><div id="msgText"></div><button id="retry">再読み込み</button></div></div>
 
 <div id="preview">
-  <div id="previewBox"></div>
-  <div class="actions">
-    <button id="close">閉じる</button>
-    <button id="save">保存</button>
+  <div class="sheet">
+    <div id="previewBox"></div>
+    <div class="actions">
+      <button id="close">閉じる</button>
+      <button id="save">保存</button>
+    </div>
   </div>
-  <div class="hint">「保存」→「画像を保存」/「ビデオを保存」で写真アプリに保存できます</div>
 </div>
 
 <script>
 (() => {
-  const video = document.getElementById('video');
-  const msg = document.getElementById('msg');
-  const msgText = document.getElementById('msgText');
-  const timerEl = document.getElementById('timer');
-  const recBtn = document.getElementById('rec');
-  const preview = document.getElementById('preview');
-  const previewBox = document.getElementById('previewBox');
+  const $ = id => document.getElementById(id);
+  const video = $('video'), msg = $('msg'), msgText = $('msgText');
+  const timerEl = $('timer'), preview = $('preview'), previewBox = $('previewBox');
+
+  const d0 = new Date();
+  $('today').textContent = (d0.getMonth() + 1) + '月' + d0.getDate() + '日';
 
   let facing = 'user';      // 'user' = 内カメ, 'environment' = 外カメ
-  let stream = null;
-  let recorder = null;
-  let chunks = [];
-  let recStart = 0, timerId = null;
-  let pending = null;       // { blob, name, url }
+  let stream = null, recorder = null, chunks = [], recStart = 0, timerId = null, pending = null;
 
-  function showMsg(text) { msgText.textContent = text; msg.classList.add('show'); }
+  function showMsg(t) { msgText.textContent = t; msg.classList.add('show'); }
   function hideMsg() { msg.classList.remove('show'); }
-
-  function stopStream() {
-    if (stream) stream.getTracks().forEach(t => t.stop());
-    stream = null;
-  }
+  function stopStream() { if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; }
 
   async function start() {
     stopStream();
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showMsg('このブラウザではカメラが使えません。\nSafari で https のページとして開いてください。');
+      showMsg('このページを表示できません。Safari で開いてください。');
       return;
     }
     try {
-      // audio: false → マイクは一切使わないので、音楽などの再生は止まりません
+      // audio: false → マイクは使わないので、音楽などの再生は止まりません
       stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
-        video: {
-          facingMode: { ideal: facing },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        }
+        video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } }
       });
       video.srcObject = stream;
       video.classList.toggle('mirror', facing === 'user');
@@ -171,85 +217,74 @@
       hideMsg();
     } catch (e) {
       console.error(e);
-      if (e && e.name === 'NotAllowedError') {
-        showMsg('カメラへのアクセスが許可されていません。\n「設定 › Safari › カメラ」で許可してから、もう一度お試しください。');
-      } else {
-        showMsg('カメラを開始できませんでした。（' + (e && e.name || e) + '）');
-      }
+      showMsg(e && e.name === 'NotAllowedError'
+        ? '「設定 › Safari › カメラ」で許可してから再読み込みしてください。'
+        : 'ページを読み込めませんでした。（' + (e && e.name || e) + '）');
     }
   }
 
-  // ---- カメラ切替 ----
-  document.getElementById('flip').addEventListener('click', () => {
+  // ‹ : 天気のページにすぐ切り替え / もう一度で戻る
+  $('hide').addEventListener('click', () => {
+    const on = document.body.classList.toggle('decoy');
+    if (on) { $('decoy').scrollTop = 0; video.pause(); } else { video.play().catch(() => {}); }
+  });
+
+  // タブ : カメラ切替
+  $('flip').addEventListener('click', () => {
     if (recorder) return;
     facing = facing === 'user' ? 'environment' : 'user';
     start();
   });
 
-  // ---- 写真 ----
-  document.getElementById('shutter').addEventListener('click', () => {
-    if (!video.videoWidth) return;
+  // 共有 : 写真
+  $('shutter').addEventListener('click', () => {
+    if (!video.videoWidth || document.body.classList.contains('decoy')) return;
     const c = document.createElement('canvas');
-    c.width = video.videoWidth;
-    c.height = video.videoHeight;
+    c.width = video.videoWidth; c.height = video.videoHeight;
     const ctx = c.getContext('2d');
-    if (facing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); } // 鏡で見たままに保存
+    if (facing === 'user') { ctx.translate(c.width, 0); ctx.scale(-1, 1); }
     ctx.drawImage(video, 0, 0, c.width, c.height);
-    const flash = document.getElementById('flash');
-    flash.classList.add('on');
-    requestAnimationFrame(() => requestAnimationFrame(() => flash.classList.remove('on')));
-    c.toBlob(blob => {
-      if (blob) openPreview(blob, 'mirror-' + stamp() + '.jpg', 'image');
-    }, 'image/jpeg', 0.92);
+    const f = $('flash'); f.classList.add('on');
+    requestAnimationFrame(() => requestAnimationFrame(() => f.classList.remove('on')));
+    c.toBlob(b => { if (b) openPreview(b, 'IMG_' + stamp() + '.jpg', 'image'); }, 'image/jpeg', 0.92);
   });
 
-  // ---- 録画（映像のみ・音声なし）----
+  // 本 : 録画（映像のみ・音声なし）
   function pickMime() {
     const types = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
     if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
     return types.find(t => MediaRecorder.isTypeSupported(t)) || '';
   }
+  function setTimer(text) { timerEl.textContent = text; }
 
-  recBtn.addEventListener('click', () => {
+  $('rec').addEventListener('click', () => {
     if (recorder) { recorder.stop(); return; }
-    if (!stream) return;
-    if (!window.MediaRecorder) { alert('この端末では録画に対応していません（iOS 14.3 以降が必要です）'); return; }
+    if (!stream || !window.MediaRecorder) return;
     const mime = pickMime();
-    try {
-      // stream には映像トラックしか含まれないので、録画も無音・マイク不使用
-      recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
-    } catch (e) {
-      alert('録画を開始できませんでした: ' + e.name);
-      recorder = null;
-      return;
-    }
+    try { recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
+    catch (e) { recorder = null; return; }
     chunks = [];
     recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
     recorder.onstop = () => {
       const type = recorder.mimeType || mime || 'video/mp4';
       const blob = new Blob(chunks, { type });
-      const ext = type.includes('webm') ? 'webm' : 'mp4';
       recorder = null;
       document.body.classList.remove('recording');
-      recBtn.classList.remove('on');
-      clearInterval(timerId);
-      if (blob.size) openPreview(blob, 'mirror-' + stamp() + '.' + ext, 'video');
+      clearInterval(timerId); setTimer('');
+      if (blob.size) openPreview(blob, 'VID_' + stamp() + (type.includes('webm') ? '.webm' : '.mp4'), 'video');
     };
     recorder.start(1000);
-    recStart = Date.now();
-    timerEl.textContent = '00:00';
+    recStart = Date.now(); setTimer('0:00');
     timerId = setInterval(() => {
       const s = Math.floor((Date.now() - recStart) / 1000);
-      timerEl.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      setTimer(Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'));
     }, 250);
     document.body.classList.add('recording');
-    recBtn.classList.add('on');
   });
 
-  // ---- プレビュー & 保存 ----
   function stamp() {
     const d = new Date(), p = n => String(n).padStart(2, '0');
-    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '_' + p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
   }
 
   function openPreview(blob, name, kind) {
@@ -257,57 +292,35 @@
     const url = URL.createObjectURL(blob);
     pending = { blob, name, url };
     const el = document.createElement(kind === 'image' ? 'img' : 'video');
-    el.className = 'media';
-    el.src = url;
-    if (kind === 'video') {
-      el.controls = true;
-      el.playsInline = true;
-      el.muted = true; // 無音なので念のため（他アプリの再生を止めない）
-      el.setAttribute('playsinline', '');
-    }
+    el.className = 'media'; el.src = url;
+    if (kind === 'video') { el.controls = true; el.muted = true; el.playsInline = true; el.setAttribute('playsinline', ''); }
     previewBox.appendChild(el);
     preview.classList.add('show');
   }
-
   function closePreview() {
-    preview.classList.remove('show');
-    previewBox.innerHTML = '';
+    preview.classList.remove('show'); previewBox.innerHTML = '';
     if (pending) URL.revokeObjectURL(pending.url);
     pending = null;
   }
+  $('close').addEventListener('click', closePreview);
 
-  document.getElementById('close').addEventListener('click', closePreview);
-
-  document.getElementById('save').addEventListener('click', async () => {
+  $('save').addEventListener('click', async () => {
     if (!pending) return;
     const file = new File([pending.blob], pending.name, { type: pending.blob.type });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file] }); return; }
       catch (e) { if (e.name === 'AbortError') return; }
     }
-    // 共有シートが使えない場合はダウンロード
     const a = document.createElement('a');
-    a.href = pending.url;
-    a.download = pending.name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    a.href = pending.url; a.download = pending.name;
+    document.body.appendChild(a); a.click(); a.remove();
   });
 
-  // ---- 画面タップでボタンを隠す/表示 ----
-  video.addEventListener('click', () => document.body.classList.toggle('hide-ui'));
-
-  // ---- バックグラウンドから戻ったら再開 ----
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-      if (recorder) recorder.stop();
-      stopStream();
-    } else {
-      start();
-    }
+    if (document.hidden) { if (recorder) recorder.stop(); stopStream(); }
+    else start();
   });
-
-  document.getElementById('retry').addEventListener('click', start);
+  $('retry').addEventListener('click', start);
 
   start();
 })();
