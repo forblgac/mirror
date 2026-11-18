@@ -16,13 +16,13 @@
 <style>
   :root {
     --chrome: #f6f6f7; --chrome-line: #d8d8dc; --field: #e6e6ea;
-    --ink: #1c1c1e; --ink-2: #6e6e73; --tint: #0a66d8; --page: #ffffff; --rec: #ff3b30;
+    --ink: #1c1c1e; --ink-2: #6e6e73; --tint: #0a66d8; --page: #f2f2f7; --card: #ffffff; --rec: #ff3b30;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --chrome: #1c1c1e; --chrome-line: #38383a; --field: #2c2c2e;
-      --ink: #f2f2f7; --ink-2: #98989f; --tint: #4c9bff; --page: #121214;
+      --ink: #f2f2f7; --ink-2: #98989f; --tint: #4c9bff; --page: #000000; --card: #1c1c1e;
       color-scheme: dark;
     }
   }
@@ -33,7 +33,7 @@
     -webkit-user-select: none; user-select: none; touch-action: manipulation;
   }
 
-  /* ---- 偽ブラウザの枠 ---- */
+  /* ---- ブラウザの枠 ---- */
   .topbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 5;
     padding: calc(6px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px max(12px, env(safe-area-inset-left));
@@ -41,15 +41,19 @@
   }
   .field {
     height: 38px; border-radius: 11px; background: var(--field);
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    font-size: 16px; color: var(--ink); position: relative;
+    display: flex; align-items: center; gap: 6px; padding: 0 6px 0 12px; position: relative;
   }
-  .field svg { width: 13px; height: 13px; color: var(--ink-2); }
-  .field .right { position: absolute; right: 12px; display: flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
-  .field .right svg { width: 16px; height: 16px; }
-  .field .recdot { width: 7px; height: 7px; border-radius: 50%; background: var(--rec); display: none; }
-  body.recording .field .recdot { display: block; }
-  body.recording .field .reload { display: none; }
+  .field > svg { width: 16px; height: 16px; color: var(--ink-2); flex: none; }
+  #q {
+    flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: transparent;
+    font: inherit; font-size: 16px; color: var(--ink); -webkit-user-select: text; user-select: text;
+  }
+  #q::placeholder { color: var(--ink-2); }
+  .field .right { display: flex; align-items: center; gap: 4px; color: var(--ink-2); font-size: 12px; font-variant-numeric: tabular-nums; flex: none; }
+  .recdot { width: 7px; height: 7px; border-radius: 50%; background: var(--rec); display: none; }
+  body.recording .recdot { display: block; }
+  #blackBtn { width: 32px; height: 32px; border: none; background: none; color: var(--ink-2); display: grid; place-items: center; padding: 0; }
+  #blackBtn svg { width: 17px; height: 17px; }
 
   .toolbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
@@ -62,32 +66,39 @@
     display: grid; place-items: center; color: var(--tint);
   }
   .tb:active { opacity: .4; }
+  .tb:disabled { color: var(--ink-2); opacity: .4; }
   .tb svg { width: 24px; height: 24px; }
-  .tb.dim { color: var(--ink-2); opacity: .45; }
   body.recording #rec { color: var(--rec); }
-  body.recording #shutter, body.recording #flip { opacity: .3; pointer-events: none; }
+  body.recording #flip { opacity: .3; pointer-events: none; }
 
-  /* ---- ページ部分 ---- */
+  /* ---- 鏡 ---- */
   #video {
     position: fixed; inset: 0; width: 100%; height: 100%;
     object-fit: cover; background: var(--page);
   }
   #video.mirror { transform: scaleX(-1); }
 
-  #decoy {
+  /* ---- スタートページ ---- */
+  #home {
     position: fixed; inset: 0; z-index: 3; background: var(--page); display: none;
     overflow-y: auto; -webkit-overflow-scrolling: touch;
-    padding: calc(70px + env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
-    line-height: 1.75; -webkit-user-select: text; user-select: text;
+    padding: calc(76px + env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
   }
-  body.decoy #decoy { display: block; }
-  #decoy h1 { font-size: 24px; line-height: 1.35; margin: 8px 0 4px; }
-  #decoy .meta { color: var(--ink-2); font-size: 13px; margin-bottom: 18px; }
-  #decoy h2 { font-size: 18px; margin: 26px 0 6px; }
-  #decoy p { margin: 0 0 14px; font-size: 16px; }
-  #decoy table { border-collapse: collapse; width: 100%; font-size: 15px; font-variant-numeric: tabular-nums; }
-  #decoy td { padding: 8px 4px; border-bottom: 0.5px solid var(--chrome-line); }
-  #decoy td:last-child { text-align: right; }
+  body.home #home { display: block; }
+  #home h2 { font-size: 20px; margin: 10px 2px 14px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 10px; margin-bottom: 30px; }
+  .tile { display: flex; flex-direction: column; align-items: center; gap: 6px; border: none; background: none; padding: 0; color: var(--ink); font: inherit; font-size: 11px; }
+  .tile .ic {
+    width: 60px; height: 60px; border-radius: 14px; background: var(--card);
+    display: grid; place-items: center; font-size: 22px; font-weight: 600; color: var(--ink-2);
+    box-shadow: 0 0 0 0.5px var(--chrome-line);
+  }
+  .card { background: var(--card); border-radius: 14px; padding: 14px 16px; color: var(--ink-2); font-size: 14px; line-height: 1.6; }
+  .card b { color: var(--ink); font-size: 15px; }
+
+  /* ---- クロ画面 ---- */
+  #black { position: fixed; inset: 0; z-index: 20; background: #000; display: none; }
+  body.black #black { display: block; }
 
   #flash { position: fixed; inset: 0; z-index: 4; background: #fff; opacity: 0; pointer-events: none; transition: opacity .25s; }
   #flash.on { opacity: .35; transition: none; }
@@ -96,7 +107,7 @@
     position: fixed; inset: 0; z-index: 4; display: none; place-items: center; text-align: center;
     padding: 32px; line-height: 1.7; background: var(--page);
   }
-  #msg.show { display: grid; }
+  body:not(.home) #msg.show { display: grid; }
   #msg button, .sheet button {
     padding: 11px 24px; font-size: 16px; border-radius: 12px; border: none; font-weight: 600;
   }
@@ -119,45 +130,46 @@
   #close { background: var(--field); color: var(--ink); }
 </style>
 </head>
-<body>
+<body class="home">
 <video id="video" class="mirror" autoplay playsinline muted></video>
 
-<div id="decoy">
-  <h1>週末の天気と服装のめやす</h1>
-  <div class="meta">更新 <span id="today"></span> 6:00</div>
-  <p>週末は高気圧に覆われて、おおむね晴れる見込みです。朝晩と日中の気温差が大きくなるため、羽織るものを一枚持っておくと安心です。</p>
-  <table>
-    <tr><td>土曜日</td><td>晴れ時々くもり</td><td>18° / 9°</td></tr>
-    <tr><td>日曜日</td><td>晴れ</td><td>19° / 10°</td></tr>
-    <tr><td>月曜日</td><td>くもり一時雨</td><td>16° / 11°</td></tr>
-  </table>
-  <h2>服装のめやす</h2>
-  <p>日中は長袖シャツや薄手のニットで過ごせます。朝の外出や夜の帰宅時は、ジャケットやカーディガンがあるとちょうどよいでしょう。</p>
-  <h2>洗濯</h2>
-  <p>土日ともに外干し日和です。日曜は空気が乾燥し、厚手のものもよく乾きます。月曜は午後から雨の可能性があるため、早めに取り込むのがおすすめです。</p>
-  <h2>紫外線</h2>
-  <p>紫外線は「やや強い」。長時間外にいる場合は日焼け止めや帽子があると安心です。</p>
+<div id="home">
+  <h2>お気に入り</h2>
+  <div class="grid">
+    <button class="tile" data-q="天気"><span class="ic">天</span>天気</button>
+    <button class="tile" data-q="ニュース"><span class="ic">N</span>ニュース</button>
+    <button class="tile" data-q="地図"><span class="ic">地</span>地図</button>
+    <button class="tile" data-q="乗換案内"><span class="ic">乗</span>乗換案内</button>
+    <button class="tile" data-q="翻訳"><span class="ic">訳</span>翻訳</button>
+    <button class="tile" data-q="辞書"><span class="ic">辞</span>辞書</button>
+    <button class="tile" data-q="レシピ"><span class="ic">R</span>レシピ</button>
+    <button class="tile" data-q="ショッピング"><span class="ic">S</span>ショッピング</button>
+  </div>
+  <h2>よく閲覧するサイト</h2>
+  <div class="card"><b>履歴はまだありません</b><br>閲覧したサイトがここに表示されます。</div>
 </div>
 
 <div id="flash"></div>
 
 <div class="topbar">
-  <div class="field">
-    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10V8a5 5 0 0 0-10 0v2H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1h-1zm-8 0V8a3 3 0 0 1 6 0v2H9z"/></svg>
-    <span>週末の天気</span>
+  <form class="field" id="form" autocomplete="off">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input id="q" type="search" enterkeyhint="go" placeholder="検索またはWebサイト名を入力">
     <span class="right">
       <span class="recdot"></span><span id="timer"></span>
-      <svg class="reload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>
+      <button type="button" id="blackBtn" aria-label="再読み込み">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4"/></svg>
+      </button>
     </span>
-  </div>
+  </form>
 </div>
 
-<!-- ‹ = 隠す/戻す   共有 = 写真   本 = 録画   タブ = カメラ切替 -->
+<!-- ‹ = スタートページ  › = 鏡  共有 = 写真  本 = 録画  タブ = カメラ切替  ⟳ = クロ画面 -->
 <div class="toolbar">
-  <button class="tb" id="hide" aria-label="戻る">
+  <button class="tb" id="back" aria-label="戻る">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
   </button>
-  <button class="tb dim" aria-hidden="true" tabindex="-1">
+  <button class="tb" id="fwd" aria-label="進む">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
   </button>
   <button class="tb" id="shutter" aria-label="共有">
@@ -170,6 +182,8 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10"/></svg>
   </button>
 </div>
+
+<div id="black"></div>
 
 <div id="msg"><div><div id="msgText"></div><button id="retry">再読み込み</button></div></div>
 
@@ -186,11 +200,9 @@
 <script>
 (() => {
   const $ = id => document.getElementById(id);
+  const body = document.body;
   const video = $('video'), msg = $('msg'), msgText = $('msgText');
   const timerEl = $('timer'), preview = $('preview'), previewBox = $('previewBox');
-
-  const d0 = new Date();
-  $('today').textContent = (d0.getMonth() + 1) + '月' + d0.getDate() + '日';
 
   let facing = 'user';      // 'user' = 内カメ, 'environment' = 外カメ
   let stream = null, recorder = null, chunks = [], recStart = 0, timerId = null, pending = null;
@@ -223,22 +235,61 @@
     }
   }
 
-  // ‹ : 天気のページにすぐ切り替え / もう一度で戻る
-  $('hide').addEventListener('click', () => {
-    const on = document.body.classList.toggle('decoy');
-    if (on) { $('decoy').scrollTop = 0; video.pause(); } else { video.play().catch(() => {}); }
-  });
+  // ---- ページ切替：‹ スタートページ / › 鏡 ----
+  function setHome(on) {
+    body.classList.toggle('home', on);
+    $('back').disabled = on;
+    $('fwd').disabled = !on;
+    if (on) { $('home').scrollTop = 0; video.pause(); } else { video.play().catch(() => {}); }
+  }
+  $('back').addEventListener('click', () => setHome(true));
+  $('fwd').addEventListener('click', () => setHome(false));
 
-  // タブ : カメラ切替
+  // ---- 検索（本当に検索できる）----
+  function go(text) {
+    text = text.trim();
+    if (!text) return;
+    const looksUrl = /^(https?:\/\/)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(text) && !/\s/.test(text);
+    const url = looksUrl
+      ? (/^https?:\/\//i.test(text) ? text : 'https://' + text)
+      : 'https://www.google.com/search?q=' + encodeURIComponent(text);
+    $('q').value = '';
+    $('q').blur();
+    setHome(true);
+    window.open(url, '_blank', 'noopener');
+  }
+  $('form').addEventListener('submit', e => { e.preventDefault(); go($('q').value); });
+  document.querySelectorAll('.tile').forEach(t => t.addEventListener('click', () => go(t.dataset.q)));
+
+  // ---- クロ画面：⟳ で真っ黒、ダブルタップで戻る ----
+  $('blackBtn').addEventListener('click', () => {
+    $('q').blur();
+    body.classList.add('black');
+    video.pause();
+  });
+  let lastTap = 0;
+  $('black').addEventListener('touchend', e => {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastTap < 350) unblack();
+    lastTap = now;
+  });
+  $('black').addEventListener('dblclick', unblack);
+  function unblack() {
+    body.classList.remove('black');
+    if (!body.classList.contains('home')) video.play().catch(() => {});
+  }
+
+  // ---- タブ：カメラ切替 ----
   $('flip').addEventListener('click', () => {
     if (recorder) return;
     facing = facing === 'user' ? 'environment' : 'user';
     start();
   });
 
-  // 共有 : 写真
+  // ---- 共有：写真 ----
   $('shutter').addEventListener('click', () => {
-    if (!video.videoWidth || document.body.classList.contains('decoy')) return;
+    if (!video.videoWidth || body.classList.contains('home')) return;
     const c = document.createElement('canvas');
     c.width = video.videoWidth; c.height = video.videoHeight;
     const ctx = c.getContext('2d');
@@ -249,7 +300,7 @@
     c.toBlob(b => { if (b) openPreview(b, 'IMG_' + stamp() + '.jpg', 'image'); }, 'image/jpeg', 0.92);
   });
 
-  // 本 : 録画（映像のみ・音声なし）
+  // ---- 本：録画（映像のみ・音声なし）----
   function pickMime() {
     const types = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
     if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
@@ -259,7 +310,7 @@
 
   $('rec').addEventListener('click', () => {
     if (recorder) { recorder.stop(); return; }
-    if (!stream || !window.MediaRecorder) return;
+    if (!stream || !window.MediaRecorder || body.classList.contains('home')) return;
     const mime = pickMime();
     try { recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); }
     catch (e) { recorder = null; return; }
@@ -269,7 +320,7 @@
       const type = recorder.mimeType || mime || 'video/mp4';
       const blob = new Blob(chunks, { type });
       recorder = null;
-      document.body.classList.remove('recording');
+      body.classList.remove('recording');
       clearInterval(timerId); setTimer('');
       if (blob.size) openPreview(blob, 'VID_' + stamp() + (type.includes('webm') ? '.webm' : '.mp4'), 'video');
     };
@@ -279,7 +330,7 @@
       const s = Math.floor((Date.now() - recStart) / 1000);
       setTimer(Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'));
     }, 250);
-    document.body.classList.add('recording');
+    body.classList.add('recording');
   });
 
   function stamp() {
@@ -318,11 +369,12 @@
 
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { if (recorder) recorder.stop(); stopStream(); }
-    else start();
+    else start().then(() => { if (body.classList.contains('home') || body.classList.contains('black')) video.pause(); });
   });
   $('retry').addEventListener('click', start);
 
-  start();
+  setHome(true);   // 開いたときはスタートページ。› で鏡へ
+  start().then(() => { if (body.classList.contains('home')) video.pause(); });
 })();
 </script>
 </body>
